@@ -1,52 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Free AI Video Generator</title>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f2f2f2; }
-    input, button { padding: 10px; font-size: 16px; margin: 10px; width: 300px; }
-    video { margin-top: 20px; max-width: 80%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-  </style>
-</head>
-<body>
-
-  <h1>🎬 AI Video Generator (Free)</h1>
-  <input type="text" id="prompt" placeholder="Describe a scene (e.g. A dog surfing)">
-  <br>
-  <button onclick="generateVideo()">Generate Video</button>
-  <div id="status"></div>
-  <video id="output" controls autoplay loop hidden></video>
-
-  <script>
-    async function generateVideo() {
-      const prompt = document.getElementById("prompt").value;
-      const status = document.getElementById("status");
-      const video = document.getElementById("output");
-
-      if (!prompt) return alert("Please enter a prompt");
-
-      status.innerText = "⏳ Generating video, please wait...";
-      video.hidden = true;
-
-      // Use ModelScope HuggingFace public Space as proxy
-      const response = await fetch("https://modelscope-text-to-video-api.vercel.app/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt })
-      });
-
-      const data = await response.json();
-
-      if (data.video_url) {
-        status.innerText = "✅ Done!";
-        video.src = data.video_url;
-        video.hidden = false;
-      } else {
-        status.innerText = "❌ Error generating video.";
+<html>
+  <head>
+    <title>AI Image Generator</title>
+    <style>
+      body {
+        text-align: center;
+        font-family: sans-serif;
+        margin-top: 50px;
+        background: #f5f5f5;
       }
-    }
-  </script>
+      input, button {
+        padding: 10px;
+        font-size: 16px;
+        margin: 5px;
+      }
+      img {
+        margin-top: 20px;
+        max-width: 80%;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      }
+    </style>
+  </head>
+  <body>
 
-</body>
+    <h2>🖼️ AI Image Generator</h2>
+
+    <input id="prompt" placeholder="Enter prompt..." style="width:300px;">
+    <br>
+    <button onclick="gen()">Generate Image</button>
+    <button id="downloadBtn" onclick="downloadImage()" hidden>⬇️ Download</button>
+
+    <p id="msg"></p>
+    <img id="img" hidden>
+
+    <script>
+      async function gen() {
+        const p = document.getElementById("prompt").value;
+        const m = document.getElementById("msg");
+        const i = document.getElementById("img");
+        const d = document.getElementById("downloadBtn");
+
+        if (!p) return alert("Please enter a prompt");
+
+        m.innerText = "⏳ Generating...";
+        i.hidden = true;
+        d.hidden = true;
+
+        const r = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer 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",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ inputs: p })
+        });
+
+        if (!r.ok) {
+          m.innerText = "❌ Error generating image.";
+          return;
+        }
+
+        const b = await r.blob();
+        const url = URL.createObjectURL(b);
+        i.src = url;
+        i.hidden = false;
+        d.hidden = false;
+        d.setAttribute("data-url", url);
+        m.innerText = "✅ Image Ready!";
+      }
+
+      function downloadImage() {
+        const url = document.getElementById("downloadBtn").getAttribute("data-url");
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "ai-image.png";
+        link.click();
+      }
+    </script>
+
+  </body>
 </html>
