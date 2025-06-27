@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <body style="text-align:center; margin-top:50px;">
+    <h2>🖼️ AI Image Generator</h2>
+    <input id="prompt" placeholder="Enter prompt..." style="padding:10px;">
+    <button onclick="gen()">Generate</button>
+    <button id="dl" hidden onclick="download()">⬇️ Download</button>
+    <p id="msg"></p>
+    <img id="img" hidden style="max-width:90%;margin-top:20px;">
+
+    <script>
+      async function gen() {
+        const prompt = document.getElementById("prompt").value;
+        const m = document.getElementById("msg");
+        const i = document.getElementById("img");
+        const d = document.getElementById("dl");
+
+        if (!prompt) return alert("Enter prompt!");
+
+        m.innerText = "⏳ Generating...";
+        i.hidden = true;
+        d.hidden = true;
+
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt })
+        });
+
+        if (!res.ok) return m.innerText = "❌ Error generating image.";
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        i.src = url;
+        i.hidden = false;
+        d.hidden = false;
+        d.setAttribute("data-url", url);
+        m.innerText = "✅ Done!";
+      }
+
+      function download() {
+        const url = document.getElementById("dl").getAttribute("data-url");
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ai-image.png";
+        a.click();
+      }
+    </script>
+  </body>
+  </html>
