@@ -1,50 +1,41 @@
 <!DOCTYPE html>
-<html>
-  <body style="text-align:center; margin-top:50px;">
-    <h2>🖼️ AI Image Generator</h2>
-    <input id="prompt" placeholder="Enter prompt..." style="padding:10px;">
-    <button onclick="gen()">Generate</button>
-    <button id="dl" hidden onclick="download()">⬇️ Download</button>
-    <p id="msg"></p>
-    <img id="img" hidden style="max-width:90%;margin-top:20px;">
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🖼️ AI Image Generator</title>
+</head>
+<body style="font-family: sans-serif; text-align: center; padding: 30px;">
+  <h2>🖼️ <strong>AI Image Generator</strong></h2>
 
-    <script>
-      async function gen() {
-        const prompt = document.getElementById("prompt").value;
-        const m = document.getElementById("msg");
-        const i = document.getElementById("img");
-        const d = document.getElementById("dl");
+  <input type="text" id="prompt" placeholder="Enter a prompt..." size="40" />
+  <button onclick="generate()">🎨 Generate</button>
+  <a id="download" href="#" download="image.png" style="margin-left: 10px;">⬇️ Download</a>
 
-        if (!prompt) return alert("Enter prompt!");
+  <p id="status"></p>
+  <img id="result" width="512" style="margin-top: 20px;" />
 
-        m.innerText = "⏳ Generating...";
-        i.hidden = true;
-        d.hidden = true;
+  <script>
+    async function generate() {
+      const prompt = document.getElementById("prompt").value;
+      if (!prompt) return alert("Please enter a prompt");
 
-        const res = await fetch("/api/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt })
-        });
+      document.getElementById("status").innerText = "⏳ Generating...";
+      document.getElementById("result").src = "";
+      document.getElementById("download").href = "#";
 
-        if (!res.ok) return m.innerText = "❌ Error generating image.";
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
 
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        i.src = url;
-        i.hidden = false;
-        d.hidden = false;
-        d.setAttribute("data-url", url);
-        m.innerText = "✅ Done!";
-      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
 
-      function download() {
-        const url = document.getElementById("dl").getAttribute("data-url");
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "ai-image.png";
-        a.click();
-      }
-    </script>
-  </body>
-  </html>
+      document.getElementById("result").src = url;
+      document.getElementById("download").href = url;
+      document.getElementById("status").innerText = "✅ Done!";
+    }
+  </script>
+</body>
+</html>
